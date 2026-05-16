@@ -8,8 +8,10 @@ import { SortHeader } from './SortHeader';
 export function LedgerTable({ visibleColumns = {}, permissions = {}, isArchiveMode = false }) {
   const {
     ledgerData = [], filteredExpenses = [], loading, selectedIds = [], setSelectedIds, handleEditRecord,
-    togglePayment, deleteExpense, restoreExpenses, openingBalance, sortConfig, setSortConfig, API_BASE, language, categories, hasPermission
+    togglePayment, deleteExpense, restoreExpenses, openingBalance, stats, sortConfig, setSortConfig, API_BASE, language, categories, hasPermission
   } = useExpenseContext();
+
+  const displayOpeningBalance = isArchiveMode ? openingBalance : (stats?.calculatedOpening ?? openingBalance);
 
   const handleSort = (key) => {
     let direction = 'desc';
@@ -75,8 +77,8 @@ export function LedgerTable({ visibleColumns = {}, permissions = {}, isArchiveMo
             {/* Opening Balance Row - Precision Aligned */}
             <tr className="bg-slate-100/50 border-b border-slate-200 italic">
               <td className="px-6 py-3" colSpan={7}></td>
-              <td className="px-6 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right" colSpan={2}>Opening Balance (期初餘額)</td>
-              <td className="px-6 py-3 text-sm font-black text-slate-900 text-right bg-yellow-50/80">${Number(openingBalance).toLocaleString()}</td>
+              <td className="px-6 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right" colSpan={2}>Initial Remaining (期初剩餘金額)</td>
+              <td className="px-6 py-3 text-sm font-black text-slate-900 text-right bg-yellow-50/80">${Number(displayOpeningBalance).toLocaleString()}</td>
               <td className="px-6 py-3" colSpan={3}></td>
             </tr>
 

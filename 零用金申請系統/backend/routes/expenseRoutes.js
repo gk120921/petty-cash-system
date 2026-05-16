@@ -91,6 +91,24 @@ module.exports = (db, excelService) => {
     });
   });
 
+  // Summary for balance adjustment
+  router.get('/expenses/summary', (req, res) => {
+    const sql = `
+      SELECT 
+        SUM(incoming) as total_in, 
+        SUM(outgoing) as total_out 
+      FROM expenses 
+      WHERE is_archived = 1
+    `;
+    db.get(sql, [], (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({
+        archived_in: row.total_in || 0,
+        archived_out: row.total_out || 0
+      });
+    });
+  });
+
   // Create Expense
   router.post('/expenses', upload.array('receipts', 20), (req, res) => {
     const { 

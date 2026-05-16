@@ -98,11 +98,11 @@ export function LedgerModule({ permissions }) {
           </div>
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div>
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Initial Capital</h4>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Initial Remaining</h4>
               <div className="flex items-center gap-3">
-                <span className="text-sm font-black text-slate-900 italic">期初餘額:</span>
+                <span className="text-sm font-black text-slate-900 italic">期初剩餘金額:</span>
                 <div className="bg-slate-100 rounded-xl px-5 py-2 font-black text-xl text-brand-600 min-w-[140px] text-center border border-slate-200/50">
-                  ${Number(openingBalance).toLocaleString()}
+                  ${Number(stats?.calculatedOpening ?? openingBalance).toLocaleString()}
                 </div>
               </div>
             </div>

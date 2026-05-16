@@ -12,6 +12,7 @@ export const useExpenses = (API_BASE) => {
   const [balanceThreshold, setBalanceThreshold] = useState(15000);
   const [isAdding, setIsAdding] = useState(false);
   const [previewUrls, setPreviewUrls] = useState([]);
+  const [archivedSummary, setArchivedSummary] = useState({ archived_in: 0, archived_out: 0 });
 
   const updateConfig = async (key, value) => {
     try {
@@ -64,10 +65,11 @@ export const useExpenses = (API_BASE) => {
         axios.get(`${API_BASE}/suppliers`),
         axios.get(`${API_BASE}/personnel`),
         axios.get(`${API_BASE}/config`),
-        axios.get(`${API_BASE}/permissions`)
+        axios.get(`${API_BASE}/permissions`),
+        axios.get(`${API_BASE}/expenses/summary`)
       ]);
 
-      const [expRes, catRes, supRes, perRes, configRes, permRes] = results;
+      const [expRes, catRes, supRes, perRes, configRes, permRes, sumRes] = results;
       
       if (expRes.status === 'fulfilled') setExpenses(expRes.value.data);
       if (catRes.status === 'fulfilled') setCategories(catRes.value.data);
@@ -81,6 +83,7 @@ export const useExpenses = (API_BASE) => {
       setAllConfigs(combinedConfigs);
       if (combinedConfigs.balance_threshold) setBalanceThreshold(Number(combinedConfigs.balance_threshold));
       if (combinedConfigs.opening_balance) setOpeningBalance(Number(combinedConfigs.opening_balance));
+      if (sumRes.status === 'fulfilled') setArchivedSummary(sumRes.value.data);
     } catch (err) {
       console.error('Fetch Error:', err);
     } finally {
@@ -142,7 +145,12 @@ export const useExpenses = (API_BASE) => {
     if (!Array.isArray(filteredExpenses)) return [];
     
     // 1. Calculate running balance chronologically first
-    let balance = Number(openingBalance) || 0;
+    // If we are in ARCHIVE mode, we start from the base opening balance.
+    // If we are in MAIN mode, we start from Opening Balance + Archived Totals.
+    const baseOpening = Number(openingBalance) || 0;
+    const offset = showArchived ? 0 : (Number(archivedSummary.archived_in) - Number(archivedSummary.archived_out));
+    let balance = baseOpening + offset;
+
     const chronological = [...filteredExpenses].sort((a, b) => {
       const dateA = new Date(a.invoice_date || 0);
       const dateB = new Date(b.invoice_date || 0);
@@ -178,7 +186,10 @@ export const useExpenses = (API_BASE) => {
 
   const stats = useMemo(() => {
     const baseBalance = Number(openingBalance) || 0;
-    if (!Array.isArray(expenses)) return { totalBalance: baseBalance, pendingBalance: 0, actualCash: baseBalance };
+    const archivedOffset = Number(archivedSummary.archived_in) - Number(archivedSummary.archived_out);
+    const calculatedOpening = baseBalance + archivedOffset;
+    
+    if (!Array.isArray(expenses)) return { totalBalance: calculatedOpening, pendingBalance: 0, actualCash: calculatedOpening, calculatedOpening };
     
     return expenses.reduce((acc, e) => {
       if (!e) return acc;
@@ -195,8 +206,8 @@ export const useExpenses = (API_BASE) => {
       }
       
       return acc;
-    }, { totalBalance: baseBalance, pendingBalance: 0, actualCash: baseBalance });
-  }, [expenses, openingBalance]);
+    }, { totalBalance: calculatedOpening, pendingBalance: 0, actualCash: calculatedOpening, calculatedOpening });
+  }, [expenses, openingBalance, archivedSummary, showArchived]);
 
   const togglePayment = async (id, status) => {
     try {
