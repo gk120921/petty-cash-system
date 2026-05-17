@@ -29,7 +29,7 @@ function AppContent() {
     allConfigs, searchTerm, setSearchTerm, 
     setFormData, runOCR, formData, editingId,
     isAdding, setIsAdding, previewUrls, setPreviewUrls, loading, initialFormData, resetForm,
-    getPermissions, hasPermission
+    getPermissions, hasPermission, expenses, language
   } = useExpenseContext();
 
   const [activeTab, setActiveTab] = useState('ledger');
@@ -82,6 +82,34 @@ function AppContent() {
     if (invoiceDate < oneMonthAgo) {
       const confirmSave = window.confirm(`【日期提醒】\n發票日期 (${dateStr}) 已超過一個月。\n\n確定要繼續儲存這筆逾期紀錄嗎？`);
       if (!confirmSave) return;
+    }
+
+    // 3. 重複日期與金額檢查 (Duplicate Date & Amount Warning)
+    const hasDuplicate = Array.isArray(expenses) && expenses.some(exp => {
+      // 如果是編輯模式且是當前編輯項目，排除 (Exclude current editing item in edit mode)
+      if (editingId && String(exp.id) === String(editingId)) return false;
+
+      // 檢查日期是否相同 (Check if invoice date is identical)
+      const sameDate = exp.invoice_date === dateStr;
+      if (!sameDate) return false;
+
+      // 檢查金額是否相同 (Check if outgoing or incoming amount is identical)
+      const currentOutgoing = Number(formData.outgoing) || 0;
+      const currentIncoming = Number(formData.incoming) || 0;
+
+      if (currentOutgoing > 0 && Number(exp.outgoing) === currentOutgoing) return true;
+      if (currentIncoming > 0 && Number(exp.incoming) === currentIncoming) return true;
+
+      return false;
+    });
+
+    if (hasDuplicate) {
+      const duplicateMsg = language === 'zh'
+        ? `【重複警告】\n系統偵測到已存在相同發票日期 (${dateStr}) 且金額相同的憑證紀錄。\n\n確定要重複儲存嗎？`
+        : `【DUPLICATE WARNING】\nThere is already an existing receipt with the same invoice date (${dateStr}) and amount.\n\nAre you sure you want to save it?`;
+      if (!window.confirm(duplicateMsg)) {
+        return;
+      }
     }
     // ------------------------------------
 

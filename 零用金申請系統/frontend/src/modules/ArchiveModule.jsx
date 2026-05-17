@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useExpenseContext } from '../context/ExpenseContext';
 import { 
   Archive, RotateCcw, Edit2, Trash2, Search, Filter, Calendar, 
-  ChevronDown, FileSpreadsheet, Download, RefreshCw, Settings
+  ChevronDown, FileSpreadsheet, Download, RefreshCw, Settings, FileText, Loader2
 } from 'lucide-react';
 import { LedgerTable } from '../components/LedgerTable';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,10 +11,11 @@ export function ArchiveModule({ permissions }) {
   const { 
     expenses, ledgerData, stats, fetchData, searchTerm, setSearchTerm, filters, setFilters,
     selectedIds, setSelectedIds, restoreExpenses, deleteExpense, batchDeleteExpenses, handleEditRecord,
-    categories = [], personnel = [], setShowArchived, loading, API_BASE, hasPermission
+    categories = [], personnel = [], setShowArchived, loading, API_BASE, hasPermission, language
   } = useExpenseContext();
 
   const [showFilters, setShowFilters] = useState(false);
+  const [exportingWord, setExportingWord] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState({
     id: true, invoice_date: true, reimbursement_date: true, supplier: true, detail_zh: true, category: true, incoming: true, outgoing: true, personnel: true, status: true, receipt_v: true, photo_v: true
   });
@@ -104,6 +105,45 @@ export function ArchiveModule({ permissions }) {
            <div className="flex items-center gap-4">
               <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold transition-all ${showFilters ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 <Filter className="w-4 h-4" /> 篩選器 FILTERS
+              </button>
+
+              <button
+                disabled={exportingWord || loading}
+                onClick={async () => {
+                  setExportingWord(true);
+                  try {
+                    const response = await axios({
+                      url: `${API_BASE}/export_word_receipts?is_archived=true`,
+                      method: 'GET',
+                      responseType: 'blob'
+                    });
+
+                    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Receipts_Archive_${new Date().toISOString().split('T')[0]}.docx`);
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => { document.body.removeChild(link); window.URL.revokeObjectURL(url); }, 30000);
+                  } catch (err) {
+                    alert('匯出失敗: ' + err.message);
+                  } finally {
+                    setExportingWord(false);
+                  }
+                }}
+                className="flex items-center gap-3 px-6 py-3 bg-white border border-slate-200 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition-all shadow-sm disabled:opacity-50"
+              >
+                {exportingWord ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="animate-spin h-4 h-4 text-indigo-600" />
+                    {language === 'zh' ? '⏳ 製作中...' : '⏳ Generating...'}
+                  </span>
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4" /> 
+                    {language === 'zh' ? '📄 下載 Word 憑證照片' : '📄 Download Word Receipts'}
+                  </>
+                )}
               </button>
               
               <div className="relative group">

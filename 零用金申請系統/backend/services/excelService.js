@@ -263,73 +263,7 @@ class ExcelService {
       }
     });
 
-    // 7. Photos Sheet
-    const imageSheet = workbook.addWorksheet('憑證照片 Receipts');
-    const imagesPerRow = 2;
-    const imgWidth = 550; // Increased for "two per page" feel
-    const imgHeight = 390;
-    const colWidth = 80;
-    const rowHeight = 320;
-
-    imageSheet.getColumn(1).width = colWidth;
-    imageSheet.getColumn(3).width = colWidth;
-
-    let currentImgCount = 0;
-    for (const row of rows) {
-      if (row.image_path) {
-        let primaryPath = row.image_path;
-        if (primaryPath.startsWith('[')) {
-          try {
-            const paths = JSON.parse(primaryPath);
-            primaryPath = Array.isArray(paths) ? paths[0] : primaryPath;
-          } catch (e) { }
-        }
-
-        const fullPath = path.join(__dirname, '..', primaryPath);
-        if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
-          try {
-            const imageId = workbook.addImage({
-              buffer: fs.readFileSync(fullPath),
-              extension: path.extname(fullPath).substring(1) || 'png',
-            });
-
-            const colIdx = (currentImgCount % imagesPerRow) * 2 + 1;
-            const rowIdx = Math.floor(currentImgCount / imagesPerRow) * 2 + 1;
-
-            const labelCell = imageSheet.getRow(rowIdx).getCell(colIdx);
-            
-            // Rich Text Label with Red Amount
-            const amount = row.outgoing ? Number(row.outgoing) : (row.incoming ? Number(row.incoming) : 0);
-            labelCell.value = {
-              richText: [
-                { text: `SN #${row.id} - ${row.supplier_name} `, font: { bold: true, size: 12 } },
-                { text: `($${amount.toLocaleString()})`, font: { bold: true, size: 12, color: { argb: 'FFFF0000' } } },
-                { text: ` (${row.invoice_date})`, font: { bold: true, size: 12 } }
-              ]
-            };
-
-            imageSheet.addImage(imageId, {
-              tl: { col: colIdx - 0.9, row: rowIdx },
-              ext: { width: imgWidth, height: imgHeight }
-            });
-
-            imageSheet.getRow(rowIdx + 1).height = rowHeight;
-            currentImgCount++;
-          } catch (e) {
-            console.error('[ExcelService] Error adding image:', e);
-          }
-        }
-      }
-    }
-
-    // [Fix] Set Explicit Print Area to prevent blank pages in PDF
-    if (currentImgCount > 0) {
-      const lastRowIdx = Math.ceil(currentImgCount / imagesPerRow) * 2;
-      imageSheet.pageSetup.printArea = `A1:D${lastRowIdx}`;
-      imageSheet.pageSetup.fitToPage = true;
-      imageSheet.pageSetup.fitToWidth = 1;
-      imageSheet.pageSetup.fitToHeight = 0; // Automatic height
-    }
+    // 7. Photos Sheet (Removed as per user request to use Word exports for photos instead of Excel)
 
     const filenameDate = new Date().toISOString().split('T')[0];
     const filename = `PettyCash_Report_${filenameDate}_v2.xlsx`;

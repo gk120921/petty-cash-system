@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Printer, Download, Archive } from 'lucide-react';
+import { Trash2, Printer, Download, Archive, FileText } from 'lucide-react';
 import axios from 'axios';
 import { useExpenseContext } from '../context/ExpenseContext';
 
@@ -75,6 +75,16 @@ export function BatchActionBar({ handleBatchPrint, permissions = {} }) {
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-all text-xs font-bold"
           >
             <Download className="w-4 h-4" /> 批次匯出
+          </button>
+
+          <button
+            onClick={() => {
+              const params = new URLSearchParams({ ids: selectedIds.join(',') });
+              window.open(`${API_BASE}/export_word_receipts?${params.toString()}`);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-bold shadow-lg shadow-blue-600/20"
+          >
+            <FileText className="w-4 h-4" /> Word 憑證下載
           </button>
 
           {permissions?.actions?.archive && (

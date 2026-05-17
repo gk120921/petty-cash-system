@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import {
   Plus, Search, Filter, Download, Archive,
-  Settings, Loader2, PlusCircle, Wallet, Calendar, TrendingUp
+  Settings, Loader2, PlusCircle, Wallet, Calendar, TrendingUp, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExpenseContext } from '../context/ExpenseContext';
@@ -37,6 +37,9 @@ export function LedgerModule({ permissions }) {
     localStorage.setItem(storageKey, JSON.stringify(newCols));
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [exportingV2, setExportingV2] = useState(false);
+  const [exportingInventory, setExportingInventory] = useState(false);
+  const [exportingWord, setExportingWord] = useState(false);
 
 
 
@@ -90,8 +93,8 @@ export function LedgerModule({ permissions }) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pb-20">
-      {/* 1. Opening Balance Section */}
-      <section className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-xl shadow-slate-200/40 flex flex-col md:flex-row items-center justify-between gap-6">
+      {/* 1. Opening Balance Section & Control Bar (Top Card) */}
+      <section className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-xl shadow-slate-200/40 flex flex-col lg:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-6">
           <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg">
             <Wallet className="w-6 h-6" />
@@ -130,22 +133,23 @@ export function LedgerModule({ permissions }) {
             <TrendingUp className="w-5 h-5" />
             {language === 'zh' ? '切換英文 (Switch to EN)' : '切換中文 (Switch to ZH)'}
           </button>
+        </div>
+      </section>
 
+      {/* 2. Download / Actions Card (Bottom Card) */}
+      <section className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-xl shadow-slate-200/40 flex flex-col md:flex-row items-center gap-6 justify-center lg:justify-start">
+        <div className="flex flex-wrap items-center gap-4 w-full">
+          {/* Download Button 1 */}
           <button
-            disabled={loading}
-            onClick={async (e) => {
-              const btn = e.currentTarget;
-              const originalContent = btn.innerHTML;
-              btn.disabled = true;
-              btn.innerHTML = '<span class="flex items-center gap-2"><svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ⏳ 報表產生中...</span>';
-
+            disabled={exportingV2 || loading}
+            onClick={async () => {
+              setExportingV2(true);
               try {
                 const response = await axios({
                   url: `${API_BASE}/export_v2`,
                   method: 'GET',
                   responseType: 'blob'
                 });
-
                 const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
                 const link = document.createElement('a');
                 link.href = url;
@@ -153,8 +157,6 @@ export function LedgerModule({ permissions }) {
                 link.setAttribute('download', filename);
                 document.body.appendChild(link);
                 link.click();
-
-                // 延長釋放時間至 30 秒，確保 Chrome 寫入硬碟成功
                 setTimeout(() => {
                   document.body.removeChild(link);
                   window.URL.revokeObjectURL(url);
@@ -162,30 +164,35 @@ export function LedgerModule({ permissions }) {
               } catch (err) {
                 alert('匯出失敗: ' + err.message);
               } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
+                setExportingV2(false);
               }
             }}
-            className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg disabled:opacity-50 min-w-[220px]"
+            className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg disabled:opacity-50 min-w-[240px] flex-1 md:flex-none justify-center"
           >
-            <Download className="w-5 h-5" /> 🚀 點此下載最新報表 (v3)
+            {exportingV2 ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="animate-spin h-5 w-5 text-white" />
+                {language === 'zh' ? '⏳ 報表產生中...' : '⏳ Generating...'}
+              </span>
+            ) : (
+              <>
+                <Download className="w-5 h-5" /> 
+                {language === 'zh' ? '🚀 點此下載最新報表 (v3)' : '🚀 Download Latest Report (v3)'}
+              </>
+            )}
           </button>
 
+          {/* Download Button 2 */}
           <button
-            disabled={loading}
-            onClick={async (e) => {
-              const btn = e.currentTarget;
-              const originalContent = btn.innerHTML;
-              btn.disabled = true;
-              btn.innerHTML = '⏳ 盤點報表產生中...';
-
+            disabled={exportingInventory || loading}
+            onClick={async () => {
+              setExportingInventory(true);
               try {
                 const response = await axios({
                   url: `${API_BASE}/export_inventory`,
                   method: 'GET',
                   responseType: 'blob'
                 });
-
                 const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
                 const link = document.createElement('a');
                 link.href = url;
@@ -196,13 +203,61 @@ export function LedgerModule({ permissions }) {
               } catch (err) {
                 alert('匯出失敗: ' + err.message);
               } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
+                setExportingInventory(false);
               }
             }}
-            className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 min-w-[220px]"
+            className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 min-w-[240px] flex-1 md:flex-none justify-center"
           >
-            <Archive className="w-5 h-5" /> 📦 零用金盤點下載
+            {exportingInventory ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="animate-spin h-5 w-5 text-white" />
+                {language === 'zh' ? '⏳ 產生中...' : '⏳ Generating...'}
+              </span>
+            ) : (
+              <>
+                <Archive className="w-5 h-5" /> 
+                {language === 'zh' ? '📦 零用金盤點下載' : '📦 Download Petty Cash Inventory'}
+              </>
+            )}
+          </button>
+
+          {/* Download Button 3 */}
+          <button
+            disabled={exportingWord || loading}
+            onClick={async () => {
+              setExportingWord(true);
+              try {
+                const response = await axios({
+                  url: `${API_BASE}/export_word_receipts?is_archived=false`,
+                  method: 'GET',
+                  responseType: 'blob'
+                });
+                const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `Receipts_${new Date().toISOString().split('T')[0]}.docx`);
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => { document.body.removeChild(link); window.URL.revokeObjectURL(url); }, 30000);
+              } catch (err) {
+                alert('匯出失敗: ' + err.message);
+              } finally {
+                setExportingWord(false);
+              }
+            }}
+            className="flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50 min-w-[240px] flex-1 md:flex-none justify-center"
+          >
+            {exportingWord ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="animate-spin h-5 w-5 text-white" />
+                {language === 'zh' ? '⏳ 製作中...' : '⏳ Generating...'}
+              </span>
+            ) : (
+              <>
+                <FileText className="w-5 h-5" /> 
+                {language === 'zh' ? '📄 下載 Word 憑證照片' : '📄 Download Word Receipts'}
+              </>
+            )}
           </button>
         </div>
       </section>

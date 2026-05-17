@@ -10,6 +10,7 @@ const { getConfig } = require('./config/configManager');
 // 2. Import Services
 const ExcelService = require('./services/excelService');
 const AuthService = require('./services/authService');
+const wordService = require('./services/wordService');
 
 const excelService = new ExcelService(db);
 const authService = new AuthService(db);
@@ -18,7 +19,7 @@ const authService = new AuthService(db);
 const systemRoutes = require('./routes/systemRoutes');
 const personnelRoutes = require('./routes/personnelRoutes')(db, authService);
 const supplierRoutes = require('./routes/supplierRoutes')(db);
-const expenseRoutes = require('./routes/expenseRoutes')(db, excelService);
+const expenseRoutes = require('./routes/expenseRoutes')(db, excelService, wordService);
 const categoryRoutes = require('./routes/categoryRoutes')(db);
 
 const app = express();

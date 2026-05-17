@@ -3,7 +3,7 @@ const upload = require('../middleware/upload');
 const path = require('path');
 const fs = require('fs');
 
-module.exports = (db, excelService) => {
+module.exports = (db, excelService, wordService) => {
   const router = express.Router();
 
     // --- [HIGHEST PRIORITY] Batch Operations ---
@@ -336,6 +336,44 @@ module.exports = (db, excelService) => {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
+  });
+
+  router.get('/export_word_receipts', (req, res) => {
+    const { is_archived, ids } = req.query;
+    
+    let sql = `
+      SELECT e.*, s.name as supplier_name, c.name_zh as category_name, p.name as personnel_name
+      FROM expenses e
+      LEFT JOIN suppliers s ON e.supplier_id = s.id
+      LEFT JOIN categories c ON e.category_id = c.id
+      LEFT JOIN personnel p ON e.personnel_id = p.id
+    `;
+    
+    let params = [];
+    if (ids) {
+      const idList = ids.split(',');
+      const placeholders = idList.map(() => '?').join(',');
+      sql += ` WHERE e.id IN (${placeholders})`;
+      params = idList;
+    } else {
+      sql += ` WHERE e.is_archived = ?`;
+      params = [is_archived === 'true' ? 1 : 0];
+    }
+    
+    sql += ` ORDER BY e.invoice_date ASC, e.id ASC`;
+    
+    db.all(sql, params, async (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      try {
+        const buffer = await wordService.exportReceiptsWord(rows);
+        res.setHeader('Content-Disposition', `attachment; filename=Receipts_${new Date().toISOString().split('T')[0]}.docx`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.send(buffer);
+      } catch (wordErr) {
+        console.error('[WORD EXPORT ERROR]', wordErr);
+        res.status(500).json({ error: wordErr.message });
+      }
+    });
   });
 
   return router;
