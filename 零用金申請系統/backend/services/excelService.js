@@ -67,7 +67,7 @@ class ExcelService {
 
     // 2. Fetch Data
     const [expensesRows, suppliers, categories, personnel] = await Promise.all([
-      this._getRows(`SELECT e.*, s.name as supplier_name, c.name_zh as category_name FROM expenses e LEFT JOIN suppliers s ON e.supplier_id = s.id LEFT JOIN categories c ON e.category_id = c.id ORDER BY e.invoice_date ASC, e.id ASC`),
+      this._getRows(`SELECT e.*, COALESCE(e.supplier_name, s.name) as supplier_name, c.name_zh as category_name FROM expenses e LEFT JOIN suppliers s ON e.supplier_id = s.id LEFT JOIN categories c ON e.category_id = c.id ORDER BY e.invoice_date ASC, e.id ASC`),
       this._getRows(`SELECT * FROM suppliers`),
       this._getRows(`SELECT * FROM categories`),
       this._getRows(`SELECT * FROM personnel`)
@@ -114,7 +114,7 @@ class ExcelService {
   /**
    * Export expenses with photos (Report v2) - Customized Layout
    */
-  async exportFinancialReportV2(rows, res) {
+  async exportFinancialReportV2(rows, res, isArchivedExport = false) {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Petty Cash Report');
 
@@ -126,6 +126,19 @@ class ExcelService {
         const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         openingBalance = Number(config.opening_balance) || 0;
       } catch (e) { }
+    }
+
+    if (!isArchivedExport) {
+      try {
+        const sumRows = await this._getRows(`SELECT SUM(incoming) as total_in, SUM(outgoing) as total_out FROM expenses WHERE is_archived = 1`);
+        if (sumRows && sumRows.length > 0) {
+          const archivedIn = Number(sumRows[0].total_in) || 0;
+          const archivedOut = Number(sumRows[0].total_out) || 0;
+          openingBalance += (archivedIn - archivedOut);
+        }
+      } catch (err) {
+        console.error('Error fetching archived summary for excel export', err);
+      }
     }
 
     const totalIn = rows.reduce((sum, row) => sum + (Number(row.incoming) || 0), 0);
@@ -283,7 +296,7 @@ class ExcelService {
   /**
    * Export inventory report with embedded photos and status
    */
-  async exportInventoryReport(rows, res) {
+  async exportInventoryReport(rows, res, isArchivedExport = false) {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Inventory Audit');
 
@@ -295,6 +308,19 @@ class ExcelService {
         const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         openingBalance = Number(config.opening_balance) || 0;
       } catch (e) { }
+    }
+
+    if (!isArchivedExport) {
+      try {
+        const sumRows = await this._getRows(`SELECT SUM(incoming) as total_in, SUM(outgoing) as total_out FROM expenses WHERE is_archived = 1`);
+        if (sumRows && sumRows.length > 0) {
+          const archivedIn = Number(sumRows[0].total_in) || 0;
+          const archivedOut = Number(sumRows[0].total_out) || 0;
+          openingBalance += (archivedIn - archivedOut);
+        }
+      } catch (err) {
+        console.error('Error fetching archived summary for inventory export', err);
+      }
     }
 
     // 2. Header

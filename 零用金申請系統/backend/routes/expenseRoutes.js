@@ -272,7 +272,7 @@ module.exports = (db, excelService, wordService) => {
     const { is_archived, ids } = req.query;
     
     let sql = `
-      SELECT e.*, s.name as supplier_name, c.name_zh as category_name, c.account_code, p.name as personnel_name
+      SELECT e.*, COALESCE(e.supplier_name, s.name) as supplier_name, c.name_zh as category_name, c.account_code, p.name as personnel_name
       FROM expenses e
       LEFT JOIN suppliers s ON e.supplier_id = s.id
       LEFT JOIN categories c ON e.category_id = c.id
@@ -297,7 +297,8 @@ module.exports = (db, excelService, wordService) => {
     db.all(sql, params, async (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
       try {
-        await excelService.exportFinancialReportV2(rows, res);
+        const isArchivedExport = is_archived === 'true';
+        await excelService.exportFinancialReportV2(rows, res, isArchivedExport);
       } catch (excelErr) {
         res.status(500).json({ error: excelErr.message });
       }
@@ -307,7 +308,7 @@ module.exports = (db, excelService, wordService) => {
   router.get('/export_inventory', (req, res) => {
     const { is_archived } = req.query;
     const sql = `
-      SELECT e.*, s.name as supplier_name, c.name_zh as category_name, c.account_code, p.name as personnel_name
+      SELECT e.*, COALESCE(e.supplier_name, s.name) as supplier_name, c.name_zh as category_name, c.account_code, p.name as personnel_name
       FROM expenses e
       LEFT JOIN suppliers s ON e.supplier_id = s.id
       LEFT JOIN categories c ON e.category_id = c.id
@@ -318,7 +319,8 @@ module.exports = (db, excelService, wordService) => {
     db.all(sql, [is_archived === 'true' ? 1 : 0], async (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
       try {
-        await excelService.exportInventoryReport(rows, res);
+        const isArchivedExport = is_archived === 'true';
+        await excelService.exportInventoryReport(rows, res, isArchivedExport);
       } catch (excelErr) {
         res.status(500).json({ error: excelErr.message });
       }
@@ -342,7 +344,7 @@ module.exports = (db, excelService, wordService) => {
     const { is_archived, ids } = req.query;
     
     let sql = `
-      SELECT e.*, s.name as supplier_name, c.name_zh as category_name, p.name as personnel_name
+      SELECT e.*, COALESCE(e.supplier_name, s.name) as supplier_name, c.name_zh as category_name, p.name as personnel_name
       FROM expenses e
       LEFT JOIN suppliers s ON e.supplier_id = s.id
       LEFT JOIN categories c ON e.category_id = c.id

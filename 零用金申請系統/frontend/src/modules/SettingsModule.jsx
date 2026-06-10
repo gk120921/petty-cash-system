@@ -128,7 +128,7 @@ export function SettingsModule() {
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm font-bold text-slate-600">當前期初餘額:</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-black text-slate-400">USD</span>
+                  <span className="text-xs font-black text-slate-400">INR</span>
                   <input 
                     type="number" 
                     disabled={!canEditCashLevel}
@@ -155,7 +155,7 @@ export function SettingsModule() {
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm font-bold text-slate-600">低餘額警示值:</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-black text-slate-400">USD</span>
+                  <span className="text-xs font-black text-slate-400">INR</span>
                   <input 
                     type="number" 
                     disabled={!canEditCashLevel}
