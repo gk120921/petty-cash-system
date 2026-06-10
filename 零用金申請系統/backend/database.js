@@ -64,10 +64,7 @@ db.serialize(() => {
     detail_en TEXT,
     detail_zh TEXT,
     personnel_id INTEGER,
-<<<<<<< HEAD
     handler_personnel_id INTEGER,
-=======
->>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
     incoming REAL DEFAULT 0,
     outgoing REAL DEFAULT 0,
     has_bill BOOLEAN DEFAULT 1,
@@ -80,12 +77,8 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (supplier_id) REFERENCES suppliers (id),
     FOREIGN KEY (category_id) REFERENCES categories (id),
-<<<<<<< HEAD
     FOREIGN KEY (personnel_id) REFERENCES personnel (id),
     FOREIGN KEY (handler_personnel_id) REFERENCES personnel (id)
-=======
-    FOREIGN KEY (personnel_id) REFERENCES personnel (id)
->>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
   )`);
 
   // 5. 系統設定表
@@ -102,10 +95,7 @@ db.serialize(() => {
   ensureColumnExists('personnel', 'password', 'TEXT');
   ensureColumnExists('personnel', 'status', "TEXT DEFAULT 'ACTIVE'");
   ensureColumnExists('expenses', 'is_archived', 'INTEGER DEFAULT 0');
-<<<<<<< HEAD
   ensureColumnExists('expenses', 'handler_personnel_id', 'INTEGER');
-=======
->>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
 
   // --- 初始預設資料 ---
   const defaultCategories = [

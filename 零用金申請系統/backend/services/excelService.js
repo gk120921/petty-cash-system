@@ -19,7 +19,6 @@ class ExcelService {
     });
   }
 
-<<<<<<< HEAD
   _readConfiguredOpeningBalance() {
     let openingBalance = 0;
     const configPath = path.join(__dirname, '..', 'config.json');
@@ -73,9 +72,6 @@ class ExcelService {
 
     return openingBalance;
   }
-
-=======
->>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
   /**
    * Export all data to a multi-sheet backup
    */
@@ -238,11 +234,6 @@ class ExcelService {
     ];
 
     const headerRow = sheet.getRow(headerRowIndex);
-<<<<<<< HEAD
-    headerValues.splice(8, 0, '報帳人 (Personnel)');
-    headerValues[headerValues.length - 1] = '經辦人 (Handler)';
-=======
->>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
     headerRow.values = headerValues;
     headerRow.font = { bold: true };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -272,11 +263,6 @@ class ExcelService {
       r.getCell(7).value = row.detail_zh || '';
       r.getCell(8).value = row.detail_en || '';
       r.getCell(9).value = row.personnel_name || '';
-<<<<<<< HEAD
-      r.getCell(9).value = row.personnel_name || '';
-      r.getCell(9).value = row.personnel_name || '';
-=======
->>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
 
       const valIn = Number(row.incoming) || 0;
       const valOut = Number(row.outgoing) || 0;
@@ -360,7 +346,6 @@ class ExcelService {
     res.send(buffer);
   }
 
-<<<<<<< HEAD
   async exportFinancialReportV3(rows, res, isArchivedExport = false, options = {}) {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Petty Cash Report V3');
@@ -574,9 +559,6 @@ class ExcelService {
     res.setHeader('Content-Length', buffer.length);
     res.send(buffer);
   }
-
-=======
->>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
   /**
    * Export inventory report with embedded photos and status
    */
