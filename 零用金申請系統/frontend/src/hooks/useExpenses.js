@@ -44,7 +44,10 @@ export const useExpenses = (API_BASE) => {
     detail_en: '',
     detail_zh: '',
     personnel_id: '',
+<<<<<<< HEAD
     handler_personnel_id: '',
+=======
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
     incoming: '',
     outgoing: '',
     has_bill: true,
@@ -133,7 +136,11 @@ export const useExpenses = (API_BASE) => {
       const matchesPersonnel = filters.personnel === 'all' || exp.personnel_id == filters.personnel;
       const matchesStatus = filters.status === 'all' || 
                             (filters.status === 'PAID' ? exp.pay_status === 'PAID' : exp.pay_status !== 'PAID');
+<<<<<<< HEAD
       const expDate = exp.reimbursement_date || exp.invoice_date || '';
+=======
+      const expDate = exp.invoice_date || '';
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       const matchesStartDate = !filters.startDate || expDate >= filters.startDate;
       const matchesEndDate = !filters.endDate || expDate <= filters.endDate;
 
@@ -153,8 +160,13 @@ export const useExpenses = (API_BASE) => {
     let balance = baseOpening + offset;
 
     const chronological = [...filteredExpenses].sort((a, b) => {
+<<<<<<< HEAD
       const dateA = new Date(a.reimbursement_date || a.invoice_date || 0);
       const dateB = new Date(b.reimbursement_date || b.invoice_date || 0);
+=======
+      const dateA = new Date(a.invoice_date || 0);
+      const dateB = new Date(b.invoice_date || 0);
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       const diff = (isNaN(dateA) ? 0 : dateA) - (isNaN(dateB) ? 0 : dateB);
       return diff !== 0 ? diff : (Number(a.id) || 0) - (Number(b.id) || 0);
     });

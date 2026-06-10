@@ -275,6 +275,7 @@ export function ExpenseModal({
           {/* Right: Form */}
           <form onSubmit={onAddExpense} className="w-full lg:w-1/2 p-10 space-y-8 bg-white">
             <div className="grid grid-cols-2 gap-6">
+<<<<<<< HEAD
               <FormGroup label="1.1 報帳人 Personnel">
                 <select required className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 outline-none font-bold focus:ring-2 focus:ring-brand-500/20" value={formData.personnel_id} onChange={e => setFormData({ ...formData, personnel_id: e.target.value })}>
                   <option value="">選擇報帳人 Select...</option>
@@ -289,6 +290,8 @@ export function ExpenseModal({
               </FormGroup>
             </div>
             <div className="grid grid-cols-2 gap-6">
+=======
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
               <FormGroup label="1.1 發票日期 Invoice Date">
                 <div className="relative group">
                   <input 
@@ -369,6 +372,16 @@ export function ExpenseModal({
               </FormGroup>
             </div>
 
+<<<<<<< HEAD
+=======
+            <FormGroup label="1.3 經辦 Personnel">
+              <select required className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 outline-none font-bold focus:ring-2 focus:ring-brand-500/20" value={formData.personnel_id} onChange={e => setFormData({ ...formData, personnel_id: e.target.value })}>
+                <option value="">選擇人員 Select...</option>
+                {personnel.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </FormGroup>
+
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
             <div className="grid grid-cols-2 gap-6">
               <FormGroup label="2.1 類別 Category">
                 <select required className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 outline-none font-bold focus:ring-2 focus:ring-brand-500/20" value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: e.target.value })}>

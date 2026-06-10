@@ -34,6 +34,7 @@ Thumbs.db
 logs/
 *.log
 
+<<<<<<< HEAD
 # Local runtime data and secrets
 backend/*.db
 backend/*.sqlite
@@ -45,3 +46,8 @@ backend/uploads/
 */backend/config.json
 */backend/google-creds.json
 */backend/uploads/
+=======
+# Keep databases as requested by user
+!*.db
+!*.sqlite
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc

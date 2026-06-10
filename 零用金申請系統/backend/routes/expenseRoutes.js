@@ -57,13 +57,20 @@ module.exports = (db, excelService, wordService) => {
              COALESCE(e.supplier_name, s.name) as display_name, 
              c.name_zh as category_name, 
              c.name_en as category_name_en,
+<<<<<<< HEAD
              p.name as personnel_name,
              hp.name as handler_personnel_name
+=======
+             p.name as personnel_name
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       FROM expenses e
       LEFT JOIN suppliers s ON e.supplier_id = s.id
       LEFT JOIN categories c ON e.category_id = c.id
       LEFT JOIN personnel p ON e.personnel_id = p.id
+<<<<<<< HEAD
       LEFT JOIN personnel hp ON e.handler_personnel_id = hp.id
+=======
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       WHERE e.is_archived = ?
       ORDER BY e.invoice_date DESC, e.id DESC
     `;
@@ -115,7 +122,11 @@ module.exports = (db, excelService, wordService) => {
   router.post('/expenses', upload.array('receipts', 20), (req, res) => {
     const { 
       invoice_date, reimbursement_date, supplier_id, supplier_name, category_id, 
+<<<<<<< HEAD
       detail_en, detail_zh, personnel_id, handler_personnel_id, incoming, outgoing, has_bill, pay_status,
+=======
+      detail_en, detail_zh, personnel_id, incoming, outgoing, has_bill, pay_status,
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       no_bill_reason_zh, no_bill_reason_en, ai_raw_text
     } = req.body;
     
@@ -127,6 +138,7 @@ module.exports = (db, excelService, wordService) => {
       image_path = req.body.image_path;
     }
 
+<<<<<<< HEAD
     const insertExpense = (sid, sname, pid, handlerPid) => {
       const sql = `INSERT INTO expenses (
         invoice_date, reimbursement_date, supplier_id, supplier_name, category_id, 
@@ -134,6 +146,15 @@ module.exports = (db, excelService, wordService) => {
         has_bill, pay_status, image_path, ai_raw_text,
         no_bill_reason_zh, no_bill_reason_en
       ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+=======
+    const insertExpense = (sid, sname, pid) => {
+      const sql = `INSERT INTO expenses (
+        invoice_date, reimbursement_date, supplier_id, supplier_name, category_id, 
+        detail_en, detail_zh, personnel_id, incoming, outgoing, 
+        has_bill, pay_status, image_path, ai_raw_text,
+        no_bill_reason_zh, no_bill_reason_en
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       
       const params = [
         invoice_date || new Date().toISOString().split('T')[0], 
@@ -144,7 +165,10 @@ module.exports = (db, excelService, wordService) => {
         detail_en || '', 
         detail_zh || '', 
         pid ? parseInt(pid) : null, 
+<<<<<<< HEAD
         handlerPid ? parseInt(handlerPid) : null,
+=======
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
         parseFloat(incoming) || 0, 
         parseFloat(outgoing) || 0, 
         (has_bill === 'true' || has_bill === true || has_bill === 1 || has_bill === '1') ? 1 : 0, 
@@ -167,6 +191,7 @@ module.exports = (db, excelService, wordService) => {
     };
 
     // 取得人員 ID (Resolve Personnel ID if passed by name)
+<<<<<<< HEAD
     const resolvePersonnelId = (rawValue, callback) => {
       if (!rawValue) {
         callback(null);
@@ -200,6 +225,29 @@ module.exports = (db, excelService, wordService) => {
         });
       } else {
         insertExpense(null, null, pid, handlerPid);
+=======
+    const resolveAndInsert = () => {
+      if (personnel_id && isNaN(personnel_id)) {
+        db.get("SELECT id FROM personnel WHERE name = ?", [personnel_id], (err, p) => {
+          insertExpenseBasedOnSupplier(p ? p.id : null);
+        });
+      } else {
+        insertExpenseBasedOnSupplier(personnel_id);
+      }
+    };
+
+    const insertExpenseBasedOnSupplier = (pid) => {
+      if (supplier_id && !isNaN(supplier_id)) {
+        db.get("SELECT name FROM suppliers WHERE id = ?", [supplier_id], (err, row) => {
+          insertExpense(supplier_id, row ? row.name : null, pid);
+        });
+      } else if (supplier_name) {
+        db.get("SELECT id FROM suppliers WHERE name = ?", [supplier_name], (err, row) => {
+          insertExpense(row ? row.id : null, supplier_name, pid);
+        });
+      } else {
+        insertExpense(null, null, pid);
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       }
     };
 
@@ -216,7 +264,11 @@ module.exports = (db, excelService, wordService) => {
     
     const allowedFields = [
       'invoice_date', 'reimbursement_date', 'supplier_id', 'category_id', 
+<<<<<<< HEAD
       'detail_en', 'detail_zh', 'personnel_id', 'handler_personnel_id', 'incoming', 'outgoing', 
+=======
+      'detail_en', 'detail_zh', 'personnel_id', 'incoming', 'outgoing', 
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       'has_bill', 'pay_status', 'ai_raw_text', 'no_bill_reason_zh', 
       'no_bill_reason_en', 'is_archived'
     ];
@@ -283,6 +335,7 @@ module.exports = (db, excelService, wordService) => {
     }
   });
 
+<<<<<<< HEAD
   const handleFinancialExport = (req, res) => {
     const { is_archived, ids, startDate, endDate } = req.query;
     const isV3Export = req.path === '/export_v3';
@@ -290,11 +343,21 @@ module.exports = (db, excelService, wordService) => {
     
     let sql = `
       SELECT e.*, COALESCE(e.supplier_name, s.name) as supplier_name, c.name_zh as category_name, c.account_code, p.name as personnel_name, hp.name as handler_personnel_name
+=======
+  router.get('/export_v2', (req, res) => {
+    const { is_archived, ids } = req.query;
+    
+    let sql = `
+      SELECT e.*, COALESCE(e.supplier_name, s.name) as supplier_name, c.name_zh as category_name, c.account_code, p.name as personnel_name
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       FROM expenses e
       LEFT JOIN suppliers s ON e.supplier_id = s.id
       LEFT JOIN categories c ON e.category_id = c.id
       LEFT JOIN personnel p ON e.personnel_id = p.id
+<<<<<<< HEAD
       LEFT JOIN personnel hp ON e.handler_personnel_id = hp.id
+=======
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
     `;
     
     let params = [];
@@ -308,6 +371,7 @@ module.exports = (db, excelService, wordService) => {
       // 全域匯出模式 (Global Export mode)
       sql += ` WHERE e.is_archived = ?`;
       params = [is_archived === 'true' ? 1 : 0];
+<<<<<<< HEAD
 
       if (startDate) {
         sql += ` AND COALESCE(e.${dateField}, e.invoice_date, '') >= ?`;
@@ -323,23 +387,36 @@ module.exports = (db, excelService, wordService) => {
     sql += isV3Export
       ? ` ORDER BY COALESCE(e.reimbursement_date, e.invoice_date, '') ASC, e.id ASC`
       : ` ORDER BY e.invoice_date ASC, e.id ASC`;
+=======
+    }
+    
+    sql += ` ORDER BY e.invoice_date ASC, e.id ASC`;
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
     
     db.all(sql, params, async (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
       try {
         const isArchivedExport = is_archived === 'true';
+<<<<<<< HEAD
         const exportMethod = isV3Export
           ? excelService.exportFinancialReportV3.bind(excelService)
           : excelService.exportFinancialReportV2.bind(excelService);
         await exportMethod(rows, res, isArchivedExport, { startDate, endDate, dateField });
+=======
+        await excelService.exportFinancialReportV2(rows, res, isArchivedExport);
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
       } catch (excelErr) {
         res.status(500).json({ error: excelErr.message });
       }
     });
+<<<<<<< HEAD
   };
 
   router.get('/export_v2', handleFinancialExport);
   router.get('/export_v3', handleFinancialExport);
+=======
+  });
+>>>>>>> bbd756e05194dd7d7ea507746d11df41652b91cc
 
   router.get('/export_inventory', (req, res) => {
     const { is_archived } = req.query;
