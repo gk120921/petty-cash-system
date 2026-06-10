@@ -1,0 +1,19 @@
+{
+  "name": "nexus-root",
+  "version": "1.0.0",
+  "description": "Nexus ERP Root Manager",
+  "scripts": {
+    "start": "npm run start:all",
+    "start:all": "concurrently \"npm run start:backend\" \"npm run start:proc-backend\" \"npm run start:pc-backend\" \"npm run start:frontend\" \"npm run start:proc-frontend\" \"npm run start:pc-frontend\" \"npm run start:wms-frontend\"",
+    "start:backend": "cd backend && node server.js",
+    "start:proc-backend": "cd \"採購審查流程系統/backend\" && node index.js",
+    "start:pc-backend": "cd \"零用金申請系統/backend\" && node server.js",
+    "start:frontend": "cd frontend && npm run dev -- --host",
+    "start:proc-frontend": "cd \"採購審查流程系統/frontend\" && npm run dev -- --host",
+    "start:pc-frontend": "cd \"零用金申請系統/frontend\" && npm run dev -- --host",
+    "start:wms-frontend": "cd \"印度採購管理系統\" && npm run dev -- --host"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

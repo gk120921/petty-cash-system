@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f0f4ff;
+  --color-brand-100: #d9e2ff;
+  --color-brand-200: #bcd0ff;
+  --color-brand-300: #8eb0ff;
+  --color-brand-400: #5887ff;
+  --color-brand-500: #2558ff;
+  --color-brand-600: #0031ff;
+  --color-brand-700: #0026e6;
+  --color-brand-800: #0020bf;
+  --color-brand-900: #001a99;
+}
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+  
+  .premium-card {
+    @apply bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition-colors shadow-sm active:scale-95 duration-100 flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-50 transition-colors shadow-sm active:scale-95 duration-100 flex items-center justify-center gap-2;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all text-sm font-medium;
+  }
+
+  .chart-bar-in {
+    @apply bg-emerald-400 hover:bg-emerald-500 transition-colors cursor-help;
+  }
+
+  .chart-bar-out {
+    @apply bg-rose-400 hover:bg-rose-500 transition-colors cursor-help;
+  }
+
+  .stat-card-glow {
+    @apply relative overflow-hidden;
+  }
+  .stat-card-glow::after {
+    content: '';
+    @apply absolute -right-4 -top-4 w-24 h-24 bg-brand-500/5 rounded-full blur-3xl;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400;
+}
